@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Rooms{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom:1.5rem;">Chat Rooms</h2>
+    {% if rooms %}
+        <ul style="list-style:none;">
+            {% for room in rooms %}
+                <li style="padding:0.8rem 0;border-bottom:1px solid #eee;">
+                    <a href="/chat/{{ room.name }}/" style="font-size:1.1rem;font-weight:500;">
+                        # {{ room.name }}
+                    </a>
+                    {% if room.description %}
+                        <span style="color:#888;margin-left:0.5rem;">— {{ room.description }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color:#888;">No rooms yet. Create one in the <a href="/admin/">admin panel</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}#{{ room.name }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2 style="margin-bottom:1rem;"># {{ room.name }}</h2>
+    <div id="chat-log" style="height:400px;overflow-y:auto;border:1px solid #eee;border-radius:6px;padding:1rem;margin-bottom:1rem;background:#fafafa;">
+        {% for message in messages %}
+            <div style="margin-bottom:0.6rem;">
+                <strong>{{ message.user.username }}</strong>
+                <span style="color:#aaa;font-size:0.8rem;margin-left:0.5rem;">{{ message.timestamp|time:"H:i" }}</span>
+                <div>{{ message.content }}</div>
+            </div>
+        {% endfor %}
+    </div>
+    <div style="display:flex;gap:0.5rem;">
+        <input type="text" id="message-input" placeholder="Type a message..." style="margin:0;flex:1;">
+        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const roomName = "{{ room.name }}";
+    const username = "{{ request.user.username }}";
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('message-input');
+
+    // Scroll to bottom on load
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    const ws = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
+
+    ws.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const div = document.createElement('div');
+        div.style.marginBottom = '0.6rem';
+        div.innerHTML = `
+            <strong>${data.username}</strong>
+            <span style="color:#aaa;font-size:0.8rem;margin-left:0.5rem;">${data.timestamp}</span>
+            <div>${data.message}</div>
+        `;
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    ws.onclose = function() {
+        console.log('WebSocket disconnected');
+    };
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            ws.send(JSON.stringify({ message: message }));
+            messageInput.value = '';
+        }
+    }
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
+{% endblock %}
